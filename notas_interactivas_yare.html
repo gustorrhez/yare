@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizarrón Sorpresa para Yare 📌</title>
+    <!-- Tailwind CSS para diseño fluido y moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para iconos bonitos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter para la interfaz, Caveat y Short Stack para simular notas escritas a mano -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;600;800&family=Short+Stack&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #241911;
+            /* Fondo de madera oscura sutil */
+            background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0),
+                              radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+
+        /* Textura realista de corcho de oficina */
+        .cork-texture {
+            background-color: #cb9675;
+            background-image: 
+                radial-gradient(rgba(131, 81, 52, 0.35) 15%, transparent 16%),
+                radial-gradient(rgba(131, 81, 52, 0.35) 15%, transparent 16%),
+                radial-gradient(rgba(0, 0, 0, 0.08) 10%, transparent 11%);
+            background-size: 10px 10px, 10px 10px, 6px 6px;
+            background-position: 0 0, 5px 5px, 2px 2px;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6), 0 15px 35px rgba(0,0,0,0.5);
+            border: 16px solid #4a3221;
+            border-image: linear-gradient(to right, #382417, #5a3e29, #382417) 16;
+        }
+
+        /* Estilo de letra manuscrito */
+        .handwritten-text {
+            font-family: 'Caveat', cursive;
+            font-size: 1.55rem;
+            line-height: 1.25;
+        }
+
+        .marker-font {
+            font-family: 'Short Stack', cursive;
+        }
+
+        /* Tachuelas 3D realistas */
+        .thumbtack {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        /* Aguja metálica de la tachuela */
+        .thumbtack::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            height: 8px;
+            background: #aaa;
+            bottom: -6px;
+            left: 7.5px;
+            transform: rotate(8deg);
+            box-shadow: 2px 2px 3px rgba(0,0,0,0.35);
+        }
+
+        /* Colores de tachuelas con gradiente para volumen */
+        .pin-cherry { background: radial-gradient(circle at 5px 5px, #ff4d4d, #990000); }
+        .pin-ocean { background: radial-gradient(circle at 5px 5px, #4da6ff, #004d99); }
+        .pin-mint { background: radial-gradient(circle at 5px 5px, #5cd65c, #006600); }
+
+        /* Efecto 3D de papel doblado para post-its */
+        .sticky-note {
+            box-shadow: 
+                0 3px 5px rgba(0,0,0,0.1),
+                4px 10px 18px rgba(0,0,0,0.2);
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Efecto de sombra curvada abajo a la derecha */
+        .sticky-note::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            right: 5px;
+            bottom: 5px;
+            width: 85%;
+            height: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+            transform: skew(5deg) rotate(2.5deg);
+        }
+
+        /* Al pasar el mouse, la nota se endereza y vuela ligeramente */
+        .sticky-note:hover {
+            transform: scale(1.06) rotate(0deg) !important;
+            box-shadow: 
+                0 14px 28px rgba(0,0,0,0.25),
+                0 10px 10px rgba(0,0,0,0.22);
+            z-index: 40;
+        }
+
+        /* Animación del vapor de café */
+        @keyframes vaporRise {
+            0% { transform: translateY(0) scale(0.85) opacity: 0.15; }
+            50% { transform: translateY(-10px) scale(1.1) opacity: 0.4; }
+            100% { transform: translateY(-22px) scale(1.3) opacity: 0; }
+        }
+
+        .steam {
+            animation: vaporRise 2.4s infinite linear;
+        }
+        .steam-delay-1 { animation-delay: 0.8s; }
+        .steam-delay-2 { animation-delay: 1.6s; }
+
+        /* Estante inferior de madera */
+        .wood-shelf {
+            background: linear-gradient(to bottom, #69442b, #402717);
+            border-top: 5px solid #85583b;
+            box-shadow: 
+                0 -4px 12px rgba(0,0,0,0.2),
+                0 12px 25px rgba(0,0,0,0.6);
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6 flex flex-col justify-between min-h-screen">
+
+    <!-- Lienzo interactivo para animaciones de confeti y corazones -->
+    <canvas id="canvasConfetti" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <div class="max-w-5xl mx-auto w-full flex-grow flex flex-col justify-between">
+        
+        <!-- Encabezado del Pizarrón -->
+        <div class="text-center mb-4">
+            <h1 class="text-2xl md:text-3.5xl font-extrabold text-[#f7ebe1] tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.6)] flex items-center justify-center gap-2">
+                <span>📌</span> Profesora Yare!!!! Estamos a Lunes, será una gran semana!! 🥳
+            </h1>
+            <p class="text-[#cbb09c] mt-1 text-xs md:text-sm font-semibold italic">
+                Instrucciones de uso: Pasa el cursor sobre las notas para leerlas y haz clic en los regalos de la parte de abajo.
+            </p>
+        </div>
+
+        <!-- Pizarrón Principal de Corcho -->
+        <div class="cork-texture rounded-xl p-5 md:p-8 flex-grow flex flex-wrap gap-6 items-center justify-center relative min-h-[440px]">
+            
+            <!-- NOTA 1: Bienvenida al lunes -->
+            <div class="sticky-note bg-[#fef6cb] text-stone-800 w-72 p-5 rotate-[-2deg] rounded-sm transform transition duration-300">
+                <div class="thumbtack pin-cherry" title="¡Hazme clic!"></div>
+                <h3 class="marker-font text-base font-bold text-amber-800 border-b border-dashed border-amber-300 pb-1.5 mb-3 flex items-center gap-1.5">
+                    <span>🚀</span> Yare, Ya es Lunes!
+                </h3>
+                <p class="handwritten-text text-stone-700">
+                    Sé que va a ser una <b>gran semana</b>. <br><br>También sé que habrá dudas, miedos... es completamente normal, porque estás avanzando y creciendo. <br><br>Con gusto te vendré a recordar que lo estás haciendo súper bien.
+                </p>
+                <div class="flex justify-between items-center mt-3 pt-1.5 border-t border-dashed border-amber-200 text-[11px] text-amber-800/80 font-bold">
+                    <span>Lo haces increíble ! 💪</span>
+                    <span class="bg-amber-100/60 px-2 py-0.5 rounded-full">Nota #1</span>
+                </div>
+            </div>
+
+            <!-- NOTA 2: El desayuno sorpresa -->
+            <div class="sticky-note bg-[#ffdfeb] text-stone-800 w-72 p-5 rotate-[1.5deg] rounded-sm transform transition duration-300">
+                <div class="thumbtack pin-ocean" title="¡Hazme clic!"></div>
+                <h3 class="marker-font text-base font-bold text-rose-800 border-b border-dashed border-rose-300 pb-1.5 mb-3 flex items-center gap-1.5">
+                    <span>☕🍩</span> Para complementar el día...
+                </h3>
+                <p class="handwritten-text text-stone-700">
+                    De camino a la oficina, estuve buscando un pan de marranito 🐷 pero no tuve suerte... <br><br>Así que decidí un par de <b>mini donas</b> y un <b>café con leche</b>. <br><br>Disfrútalo mucho! Más tarde pasaré a visitarte para saber cómo estás.
+                </p>
+                <div class="flex justify-between items-center mt-3 pt-1.5 border-t border-dashed border-rose-200 text-[11px] text-rose-800/80 font-bold">
+                    <span>Provechito ❤️</span>
+                    <span class="bg-rose-100/60 px-2 py-0.5 rounded-full">Nota #2</span>
+                </div>
+            </div>
+
+            <!-- NOTA 3: Recordatorio importante -->
+            <div class="sticky-note bg-[#e0f3fe] text-stone-800 w-72 p-5 rotate-[-1deg] rounded-sm transform transition duration-300">
+                <div class="thumbtack pin-mint" title="¡Hazme clic!"></div>
+                <h3 class="marker-font text-base font-bold text-sky-800 border-b border-dashed border-sky-300 pb-1.5 mb-3 flex items-center gap-1.5">
+                    <span>🌟</span> No lo olvides nunca:
+                </h3>
+                <p class="handwritten-text text-stone-700">
+                    Para hoy y para siempre:<br><br>
+                    <b>Eres valiosa, eres importante</b> y sumas muchísimo a este equipo y a todos los que te rodean. <br><br>
+                    Tu talento y tu energía positiva marcan la diferencia todos los días. ¡Que tengas un día espectacular!
+                </p>
+                <div class="flex justify-between items-center mt-3 pt-1.5 border-t border-dashed border-sky-200 text-[11px] text-sky-800/80 font-bold">
+                    <span>Brilla hoy ✨</span>
+                    <span class="bg-sky-100/60 px-2 py-0.5 rounded-full">Nota #3</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Estante de Madera Interactiva -->
+        <div class="wood-shelf rounded-b-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center mt-[-8px] z-20">
+            
+            <!-- Desayuno Virtual -->
+            <div class="flex items-center gap-5 p-2 bg-black/25 rounded-lg border border-white/5">
+                <span class="text-xs font-bold text-orange-200/60 uppercase tracking-widest block md:hidden text-center w-full">Regalos Interactivos:</span>
+                
+                <!-- Café interactivo -->
+                <div id="interactiveCoffee" class="relative cursor-pointer group flex flex-col items-center" title="¡Dale un trago al café!">
+                    <!-- Vapor animado SVG -->
+                    <div class="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-1 pointer-events-none">
+                        <svg class="steam w-2 h-7 text-white/30" viewBox="0 0 10 30"><path d="M5,30 C5,20 0,15 0,10 C0,5 5,5 5,0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <svg class="steam steam-delay-1 w-2 h-7 text-white/30" viewBox="0 0 10 30"><path d="M5,30 C8,20 3,15 3,10 C3,5 7,5 5,0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <svg class="steam steam-delay-2 w-2 h-7 text-white/30" viewBox="0 0 10 30"><path d="M5,30 C2,20 7,15 5,10 C3,5 5,5 5,0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+                    <!-- Taza SVG -->
+                    <div class="transform transition group-hover:scale-115 active:scale-90 duration-150">
+                        <svg width="46" height="42" viewBox="0 0 45 40">
+                            <path d="M10,5 L30,5 C30,5 30,30 20,30 C10,30 10,5 10,5 Z" fill="#b08c68" stroke="#4a3221" stroke-width="2"/>
+                            <path d="M30,10 C36,10 36,20 30,20" fill="none" stroke="#4a3221" stroke-width="2.5" stroke-linecap="round"/>
+                            <ellipse cx="20" cy="31" rx="14" ry="2.5" fill="#69442b" stroke="#4a3221" stroke-width="1.5"/>
+                            <path d="M20,11 C20,11 18,9 17,10 C16,11 17,13 20,15 C23,13 24,11 23,10 C22,9 20,11 20,11 Z" fill="#ffffff"/>
+                        </svg>
+                    </div>
+                    <span class="text-[9px] text-orange-200 font-extrabold mt-1 tracking-wider group-hover:text-white transition uppercase">Tomar Café</span>
+                </div>
+
+                <!-- Dona interactiva -->
+                <div id="interactiveDonut" class="relative cursor-pointer group flex flex-col items-center" title="¡Dale un mordisco a la dona!">
+                    <div class="transform transition group-hover:scale-115 active:scale-90 duration-150">
+                        <svg id="donutSvgElement" width="46" height="46" viewBox="0 0 50 50">
+                            <!-- Cuerpo -->
+                            <circle cx="25" cy="25" r="18" fill="#e8984e" stroke="#99581a" stroke-width="1"/>
+                            <!-- Glaseado Fresa -->
+                            <circle cx="25" cy="25" r="14" fill="#fc6294"/>
+                            <!-- Chispas -->
+                            <line x1="15" y1="20" x2="18" y2="18" stroke="#ffff00" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="32" y1="18" x2="35" y2="21" stroke="#3399ff" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="21" y1="32" x2="24" y2="34" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="28" y1="31" x2="31" y2="28" stroke="#33ff33" stroke-width="2.5" stroke-linecap="round"/>
+                            <circle cx="25" cy="25" r="5" fill="#4a3221"/>
+                        </svg>
+                    </div>
+                    <span id="donutLabel" class="text-[9px] text-pink-200 font-extrabold mt-1 tracking-wider group-hover:text-white transition uppercase">Morder Dona</span>
+                </div>
+            </div>
+
+            <!-- Botones de Reacción para Yare -->
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs font-semibold text-[#f7ebe1]/80 hidden lg:inline">¿Qué te pareció?</span>
+                <button id="btnReactLove" class="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-extrabold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 text-xs uppercase tracking-wider">
+                    <i class="fa-solid fa-heart text-white animate-pulse"></i> ¡Me encantó!
+                </button>
+                <button id="btnReactHug" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 text-xs uppercase tracking-wider">
+                    <i class="fa-solid fa-hands-holding-child"></i> Te dejo un Abrazo
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Footer motivacional -->
+        <div class="text-center mt-4">
+            <p class="text-stone-500 text-xs tracking-widest font-semibold">
+                DISEÑADO CON CARIÑO PARA ALEGRARTE EL DÍA • 2026
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        // Sintetizador de audio en tiempo real para retroalimentación sonora
+        const playTone = (action) => {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+
+                if (action === 'pin') {
+                    // Sonido de clic/plink metálico para las tachuelas
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1400, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.12);
+                } else if (action === 'sip') {
+                    // Sonido de sorbo ascendente para el café
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(180, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.35);
+                    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.35);
+                } else if (action === 'bite') {
+                    // Simulación de sonido crujiente ("bite")
+                    const bufferSize = ctx.sampleRate * 0.08;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const gain = ctx.createGain();
+                    noise.connect(gain);
+                    gain.connect(ctx.destination);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+                    noise.start();
+                } else if (action === 'sparkle') {
+                    // Melodía mágica ascendente para reacciones
+                    const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                    freqs.forEach((f, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.06);
+                        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.06);
+                        gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + i * 0.06 + 0.01);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.06 + 0.4);
+                        osc.start(ctx.currentTime + i * 0.06);
+                        osc.stop(ctx.currentTime + i * 0.06 + 0.45);
+                    });
+                }
+            } catch (e) {
+                console.log("AudioContext blocked or not supported by browser security policy.");
+            }
+        };
+
+        // Sistema de renderizado de confetti y corazones flotantes
+        const canvas = document.getElementById('canvasConfetti');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        const resizeCanvas = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, char, sizeMultiplier = 1, speedX = null) {
+                this.x = x;
+                this.y = y;
+                this.char = char;
+                this.size = (Math.random() * 18 + 14) * sizeMultiplier;
+                this.speedX = speedX !== null ? speedX : (Math.random() * 6 - 3);
+                this.speedY = -(Math.random() * 5 + 3);
+                this.opacity = 1;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotSpeed = Math.random() * 0.04 - 0.02;
+                this.fadeRate = Math.random() * 0.008 + 0.008;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedY += 0.06; // Gravedad ligera
+                this.rotation += this.rotSpeed;
+                this.opacity -= this.fadeRate;
+                if (this.size > 2) this.size -= 0.04;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.opacity);
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.font = `${this.size}px Arial`;
+                ctx.fillText(this.char, -this.size/2, this.size/2);
+                ctx.restore();
+            }
+        }
+
+        const animationLoop = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = particles.filter(p => p.opacity > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animationLoop);
+        };
+        animationLoop();
+
+        // Interacción para las tachuelas
+        document.querySelectorAll('.thumbtack').forEach(pin => {
+            pin.addEventListener('click', (e) => {
+                playTone('pin');
+                pin.style.transform = 'translateX(-50%) scale(1.3) translateY(2px)';
+                setTimeout(() => {
+                    pin.style.transform = 'translateX(-50%) scale(1)';
+                }, 100);
+            });
+        });
+
+        // Interacción Café
+        const coffee = document.getElementById('interactiveCoffee');
+        coffee.addEventListener('click', (e) => {
+            playTone('sip');
+            const rect = coffee.getBoundingClientRect();
+            // Desprendimiento de burbujitas / corazones de café
+            for(let i = 0; i < 6; i++) {
+                particles.push(new Particle(
+                    rect.left + rect.width / 2, 
+                    rect.top, 
+                    ['☕', '✨', '☁️', '🤎'][Math.floor(Math.random() * 4)],
+                    0.85
+                ));
+            }
+        });
+
+        // Interacción Dona con mordiscos dinámicos
+        const donut = document.getElementById('interactiveDonut');
+        const donutSvg = document.getElementById('donutSvgElement');
+        const donutLabel = document.getElementById('donutLabel');
+        let biteCount = 0;
+
+        donut.addEventListener('click', () => {
+            if (biteCount < 4) {
+                playTone('bite');
+                biteCount++;
+
+                const rect = donut.getBoundingClientRect();
+                // Partículas de chispitas de dulce
+                for (let i = 0; i < 12; i++) {
+                    particles.push(new Particle(
+                        rect.left + rect.width / 2,
+                        rect.top + rect.height / 2,
+                        ['🌟', '💖', '🍪', '🌸'][Math.floor(Math.random() * 4)],
+                        0.7
+                    ));
+                }
+
+                // Dibujar etapas progresivas de los mordiscos
+                if (biteCount === 1) {
+                    donutSvg.innerHTML = `
+                        <path d="M25,7 C16,7 8,15 8,25 C8,35 16,43 25,43 C33,43 41,35 41,25 C41,22 39,17 35,15 C36,12 32,9 29,9 C27,9 26,10 25,7 Z" fill="#e8984e" stroke="#99581a" stroke-width="1"/>
+                        <path d="M25,11 C18,11 12,17 12,25 C12,33 18,39 25,39 C31,39 37,33 37,25 C37,23 35,19 32,17 C33,14 30,12 27,12 Z" fill="#fc6294"/>
+                        <circle cx="25" cy="25" r="5" fill="#4a3221"/>
+                        <line x1="15" y1="20" x2="18" y2="18" stroke="#ffff00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="21" y1="32" x2="24" y2="34" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="28" y1="31" x2="31" y2="28" stroke="#33ff33" stroke-width="2.5" stroke-linecap="round"/>
+                    `;
+                } else if (biteCount === 2) {
+                    donutSvg.innerHTML = `
+                        <path d="M25,7 C16,7 8,15 8,25 C8,35 16,43 25,43 C29,43 33,41 36,37 C33,37 31,34 30,30 C29,26 31,23 35,21 C34,17 33,15 31,15 C32,12 29,9 27,9 C25,9 25,10 25,7 Z" fill="#e8984e" stroke="#99581a" stroke-width="1"/>
+                        <path d="M25,11 C18,11 12,17 12,25 C12,33 18,39 25,39 C27,39 31,37 32,34 C29,34 27,31 26,28 C26,25 28,23 31,21 Z" fill="#fc6294"/>
+                        <circle cx="23" cy="25" r="4.5" fill="#4a3221"/>
+                        <line x1="15" y1="20" x2="18" y2="18" stroke="#ffff00" stroke-width="2.5" stroke-linecap="round"/>
+                    `;
+                } else if (biteCount === 3) {
+                    donutSvg.innerHTML = `
+                        <path d="M25,7 C16,7 8,15 8,25 C8,35 16,43 25,43 L25,25 Z" fill="#e8984e" stroke="#99581a" stroke-width="1"/>
+                        <path d="M25,11 C18,11 12,17 12,25 L25,25 Z" fill="#fc6294"/>
+                        <circle cx="21" cy="25" r="3" fill="#4a3221"/>
+                        <line x1="15" y1="20" x2="18" y2="18" stroke="#ffff00" stroke-width="2.5" stroke-linecap="round"/>
+                    `;
+                    donutLabel.innerText = "¡Último bocado!";
+                } else if (biteCount === 4) {
+                    // Quedan solo migajas
+                    donutSvg.innerHTML = `
+                        <ellipse cx="25" cy="35" rx="13" ry="2.5" fill="#69442b"/>
+                        <circle cx="21" cy="34" r="1.5" fill="#e8984e"/>
+                        <circle cx="29" cy="35" r="1" fill="#fc6294"/>
+                        <circle cx="25" cy="33" r="1" fill="#e8984e"/>
+                    `;
+                    donutLabel.innerText = "¡Deli!";
+                    donutLabel.classList.add("text-stone-400");
+                }
+            }
+        });
+
+        // Botón "Me encantó"
+        document.getElementById('btnReactLove').addEventListener('click', (e) => {
+            playTone('sparkle');
+            const rect = e.target.getBoundingClientRect();
+            // Explosión de amor desde el botón
+            for (let i = 0; i < 24; i++) {
+                particles.push(new Particle(
+                    rect.left + rect.width / 2, 
+                    rect.top, 
+                    ['❤️', '💖', '🥰', '🎈', '✨'][Math.floor(Math.random() * 5)],
+                    1.2
+                ));
+            }
+        });
+
+        // Botón "Dejar un Abrazo"
+        document.getElementById('btnReactHug').addEventListener('click', (e) => {
+            playTone('sparkle');
+            // Lluvia masiva de abrazos por toda la pantalla
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle(
+                    Math.random() * window.innerWidth,
+                    window.innerHeight + 15,
+                    ['🤗', '🌸', '✨', '🍀', '🎉'][Math.floor(Math.random() * 5)],
+                    1.1,
+                    (Math.random() * 3 - 1.5)
+                ));
+            }
+        });
+    </script>
+</body>
+</html>
