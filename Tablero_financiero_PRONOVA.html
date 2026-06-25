@@ -366,8 +366,19 @@
       .brand { align-items: flex-start; flex-direction: column; }
       .brand img { width: 180px; }
       .controls { border-radius: 22px; flex-direction: column; align-items: stretch; width: 100%; }
-      .table-panel { overflow-x: auto; }
-      table { min-width: 820px; }
+      .table-panel {
+        overflow: hidden;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+      }
+      table { min-width: 560px; }
+      thead th { font-size: 10px; padding: 10px 8px; }
+      tbody td { padding: 11px 8px; font-size: 13px; }
       .bar-row { grid-template-columns: 82px 1fr 88px; }
     }
   </style>
@@ -419,6 +430,7 @@
 
       <section class="panel table-panel">
         <h2>Resumen por sucursal</h2>
+        <div class="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -433,6 +445,7 @@
           </thead>
           <tbody id="summaryBody"></tbody>
         </table>
+        </div>
 
         <div class="bar-area" id="barArea"></div>
 
